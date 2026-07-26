@@ -14,7 +14,7 @@ export async function SiteNav() {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/" className="font-display text-lg tracking-tight text-ink">
           <Image
-            src="/lib/image/GPIG_logo.png"
+            src="/image/GPIG_logo.png"
             alt="GPIG"
             width={40}
             height={40}
