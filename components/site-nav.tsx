@@ -1,3 +1,4 @@
+import Image from "next/image"
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/(auth)/actions'
@@ -12,7 +13,14 @@ export async function SiteNav() {
     <header className="border-b border-line">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/" className="font-display text-lg tracking-tight text-ink">
-          GPIG <span className="text-moss-700">/ jardin expérimental</span>
+          <Image
+            src="/lib/image/GPIG_logo.png"
+            alt="GPIG"
+            width={40}
+            height={40}
+            priority
+          />
+          <span className="text-moss-700">GPIG</span>
         </Link>
 
         <nav className="flex items-center gap-5 text-sm">
