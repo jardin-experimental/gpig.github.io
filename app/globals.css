@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Public Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+
+  /* Focus clavier toujours visible — jamais supprimé, même sur les éléments custom */
+  :focus-visible {
+    outline: 2px solid theme('colors.moss.600');
+    outline-offset: 2px;
+  }
+
+  a {
+    @apply underline-offset-2;
+  }
+}
+
+@layer utilities {
+  .field-grid {
+    background-image: theme('backgroundImage.dotted-grid');
+    background-size: theme('backgroundSize.dotted-grid');
+  }
+
+  /* Étiquette façon spécimen d'herbier : coin légèrement coupé, bord fin */
+  .specimen-tag {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
