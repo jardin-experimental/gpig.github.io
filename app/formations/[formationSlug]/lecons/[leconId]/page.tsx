@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CompleteLessonButton } from './complete-lesson-button'
 import { QuizPlayer, type QuizData } from './quiz-player'
+import { VideoPlayer } from '@/components/VideoPlayer'
 
 async function loadQuiz(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -114,7 +115,7 @@ export default async function LeconPage({
 
       {content.video_url && (
         <div className="mb-6 aspect-video w-full overflow-hidden rounded-lg bg-black">
-          <video src={content.video_url} controls className="h-full w-full" />
+          <VideoPlayer url={content.video_url} />
         </div>
       )}
 

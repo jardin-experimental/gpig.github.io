@@ -27,12 +27,12 @@ export default function HomePage() {
             >
               Explorer les formations
             </Link>
-            <Link
+            {/* <Link
               href="/register"
               className="rounded-full border border-line px-5 py-2.5 text-sm text-ink hover:border-moss-600"
             >
               Créer un compte
-            </Link>
+            </Link> */}
           </div>
 
           <div className="mt-14 max-w-md rounded-lg border border-line bg-white/60 p-5">
