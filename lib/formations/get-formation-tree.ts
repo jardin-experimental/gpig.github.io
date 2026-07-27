@@ -77,11 +77,19 @@ export async function getFormationTree(slug: string): Promise<FormationTree | nu
 
   const completedIds = new Set((progress ?? []).map((p) => p.lecon_id))
 
-  // Ordre global pour déterminer le déverrouillage séquentiel côté affichage
-  const allLecons = (modules ?? [])
-    .flatMap((m) => m.chapitres ?? [])
-    .flatMap((c) => c.lecons ?? [])
-    .sort((a, b) => a.position - b.position)
+  // Ordre global pour déterminer le déverrouillage séquentiel côté affichage.
+  // Important : lecon.position ne compte que DANS son chapitre (chaque
+  // chapitre repart à 1) — il faut donc trier modules → chapitres → leçons
+  // de façon imbriquée avant d'aplatir, exactement comme le fait la fonction
+  // SQL is_lesson_unlocked. Trier uniquement par lecon.position ferait
+  // apparaître la 1ère leçon du chapitre suivant avant la 2e leçon du
+  // chapitre courant.
+  const modulesTries = [...(modules ?? [])].sort((a, b) => a.position - b.position)
+  const allLecons = modulesTries.flatMap((m) =>
+    [...(m.chapitres ?? [])]
+      .sort((a, b) => a.position - b.position)
+      .flatMap((c) => [...(c.lecons ?? [])].sort((a, b) => a.position - b.position))
+  )
 
   let previousCompleted = true // la première leçon est toujours "débloquée par défaut" si preview ou accès formation
 
@@ -99,28 +107,26 @@ export async function getFormationTree(slug: string): Promise<FormationTree | nu
     description: formation.description,
     is_premium: formation.is_premium,
     has_access: Boolean(hasAccess),
-    modules: (modules ?? [])
-      .sort((a, b) => a.position - b.position)
-      .map((m) => ({
-        id: m.id,
-        titre: m.titre,
-        chapitres: (m.chapitres ?? [])
-          .sort((a, b) => a.position - b.position)
-          .map((c) => ({
-            id: c.id,
-            titre: c.titre,
-            lecons: (c.lecons ?? [])
-              .sort((a, b) => a.position - b.position)
-              .map((l) => ({
-                id: l.id,
-                titre: l.titre,
-                type: l.type,
-                duree_minutes: l.duree_minutes,
-                is_free_preview: l.is_free_preview,
-                is_unlocked: unlockedById.get(l.id) ?? false,
-                is_completed: completedIds.has(l.id),
-              })),
-          })),
-      })),
+    modules: modulesTries.map((m) => ({
+      id: m.id,
+      titre: m.titre,
+      chapitres: [...(m.chapitres ?? [])]
+        .sort((a, b) => a.position - b.position)
+        .map((c) => ({
+          id: c.id,
+          titre: c.titre,
+          lecons: [...(c.lecons ?? [])]
+            .sort((a, b) => a.position - b.position)
+            .map((l) => ({
+              id: l.id,
+              titre: l.titre,
+              type: l.type,
+              duree_minutes: l.duree_minutes,
+              is_free_preview: l.is_free_preview,
+              is_unlocked: unlockedById.get(l.id) ?? false,
+              is_completed: completedIds.has(l.id),
+            })),
+        })),
+    })),
   }
 }
