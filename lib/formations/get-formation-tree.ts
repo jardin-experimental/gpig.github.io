@@ -130,3 +130,43 @@ export async function getFormationTree(slug: string): Promise<FormationTree | nu
     })),
   }
 }
+
+export interface LessonNavItem {
+  id: string
+  titre: string
+  is_unlocked: boolean
+}
+
+export interface LessonNavigation {
+  previous: LessonNavItem | null
+  next: LessonNavItem | null
+}
+
+/**
+ * Trouve la leçon précédente/suivante dans l'ordre global de la formation
+ * (même ordre que getFormationTree : module → chapitre → leçon). Réutilise
+ * getFormationTree plutôt que de recalculer l'ordre séparément, pour ne
+ * jamais risquer une deuxième logique de tri qui diverge de la première.
+ */
+export async function getLessonNavigation(
+  formationSlug: string,
+  leconId: string
+): Promise<LessonNavigation> {
+  const formation = await getFormationTree(formationSlug)
+  if (!formation) return { previous: null, next: null }
+
+  const allLecons = formation.modules.flatMap((m) =>
+    m.chapitres.flatMap((c) => c.lecons)
+  )
+
+  const index = allLecons.findIndex((l) => l.id === leconId)
+  if (index === -1) return { previous: null, next: null }
+
+  const previous = index > 0 ? allLecons[index - 1] : null
+  const next = index < allLecons.length - 1 ? allLecons[index + 1] : null
+
+  return {
+    previous: previous && { id: previous.id, titre: previous.titre, is_unlocked: previous.is_unlocked },
+    next: next && { id: next.id, titre: next.titre, is_unlocked: next.is_unlocked },
+  }
+}

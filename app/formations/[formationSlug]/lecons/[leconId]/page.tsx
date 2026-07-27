@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { CompleteLessonButton } from './complete-lesson-button'
 import { QuizPlayer, type QuizData } from './quiz-player'
 import { SIMULATION_REGISTRY, type SimulationKey } from '@/components/simulations/registry'
-import { VideoPlayer } from '@/components/VideoPlayer'
+import { getLessonNavigation } from '@/lib/formations/get-formation-tree'
+import { LessonNav } from './lesson-nav'
 
 async function loadQuiz(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -70,6 +71,8 @@ export default async function LeconPage({
     .eq('lecon_id', leconId)
     .maybeSingle()
 
+  const navigation = await getLessonNavigation(formationSlug, leconId)
+
   if (lecon.type === 'quiz') {
     const quiz = await loadQuiz(supabase, leconId)
 
@@ -80,6 +83,7 @@ export default async function LeconPage({
             🔒 Ce quiz est verrouillé. Terminez la leçon précédente ou débloquez
             l&apos;accès à la formation.
           </p>
+          <LessonNav formationSlug={formationSlug} navigation={navigation} />
         </main>
       )
     }
@@ -88,6 +92,7 @@ export default async function LeconPage({
       <main className="mx-auto max-w-2xl px-6 py-10">
         <h1 className="mb-6 text-2xl font-semibold">{quiz.titre}</h1>
         <QuizPlayer quiz={quiz} formationSlug={formationSlug} />
+        <LessonNav formationSlug={formationSlug} navigation={navigation} />
       </main>
     )
   }
@@ -106,6 +111,7 @@ export default async function LeconPage({
           🔒 Cette leçon est verrouillée. Terminez la leçon précédente ou débloquez
           l&apos;accès à la formation.
         </p>
+        <LessonNav formationSlug={formationSlug} navigation={navigation} />
       </main>
     )
   }
@@ -116,7 +122,7 @@ export default async function LeconPage({
 
       {content.video_url && (
         <div className="mb-6 aspect-video w-full overflow-hidden rounded-lg bg-black">
-          <VideoPlayer url={content.video_url} />
+          <video src={content.video_url} controls className="h-full w-full" />
         </div>
       )}
 
@@ -140,6 +146,8 @@ export default async function LeconPage({
         formationSlug={formationSlug}
         alreadyCompleted={Boolean(progress)}
       />
+
+      <LessonNav formationSlug={formationSlug} navigation={navigation} />
     </main>
   )
 }
