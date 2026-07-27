@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CompleteLessonButton } from './complete-lesson-button'
 import { QuizPlayer, type QuizData } from './quiz-player'
+import { SIMULATION_REGISTRY, type SimulationKey } from '@/components/simulations/registry'
 import { VideoPlayer } from '@/components/VideoPlayer'
 
 async function loadQuiz(
@@ -122,6 +123,17 @@ export default async function LeconPage({
       {content.contenu_texte && (
         <div className="prose mb-6 max-w-none">{content.contenu_texte}</div>
       )}
+
+      {(() => {
+        const ressources = content.ressources as { component?: string } | null
+        const key = ressources?.component as SimulationKey | undefined
+        const Simulation = key ? SIMULATION_REGISTRY[key] : null
+        return Simulation ? (
+          <div className="mb-6">
+            <Simulation />
+          </div>
+        ) : null
+      })()}
 
       <CompleteLessonButton
         leconId={lecon.id}
