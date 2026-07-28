@@ -10,6 +10,13 @@ import dynamic from 'next/dynamic'
  */
 export const SIMULATION_REGISTRY = {
   'pendulum-quiz': dynamic(() => import('./pendulum-quiz')),
+  'density-quiz': dynamic(() => import('./density-quiz')),
+  'circuit-quiz': dynamic(() => import('./circuit-quiz')),
+  'parabola-quiz': dynamic(() => import('./parabola-quiz')),
+  'pythagoras-quiz': dynamic(() => import('./pythagoras-quiz')),
+  'wave-quiz': dynamic(() => import('./wave-quiz')),
+  'optics-quiz': dynamic(() => import('./optics-quiz')),
+  'projectile-quiz': dynamic(() => import('./projectile-quiz')),
 } as const
 
 export type SimulationKey = keyof typeof SIMULATION_REGISTRY

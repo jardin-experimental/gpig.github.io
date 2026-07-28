@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { simStyles as s } from "./sim-styles";
 
 /**
  * PendulumQuiz
@@ -99,21 +100,21 @@ export default function PendulumQuiz() {
   };
 
   return (
-    <div style={styles.card}>
-      <div style={styles.header}>
-        <span style={styles.eyebrow}>Simulation — Mécanique</span>
-        <h3 style={styles.title}>Le pendule simple</h3>
+    <div style={s.card}>
+      <div style={s.header}>
+        <span style={s.eyebrow}>Simulation — Mécanique</span>
+        <h3 style={s.title}>Le pendule simple</h3>
       </div>
 
-      <div style={styles.simArea}>
-        <svg width="300" height="260" style={styles.svg}>
+      <div style={s.simArea}>
+        <svg width="300" height="260" style={s.svg}>
           <line x1={cx - 20} y1={cy} x2={cx + 20} y2={cy} stroke="#4b4b57" strokeWidth={4} />
           <line x1={cx} y1={cy} x2={bobX} y2={bobY} stroke="#8a8a99" strokeWidth={2} />
           <circle cx={bobX} cy={bobY} r={14} fill="#3F6B46" stroke="#2A472D" strokeWidth={2} />
         </svg>
 
-        <div style={styles.controls}>
-          <label style={styles.label}>
+        <div style={s.controls}>
+          <label style={s.label}>
             Longueur du fil : {length.toFixed(1)} m
             <input
               type="range"
@@ -122,11 +123,11 @@ export default function PendulumQuiz() {
               step={0.1}
               value={length}
               onChange={(e) => handleLengthChange(parseFloat(e.target.value))}
-              style={styles.range}
+              style={s.range}
             />
           </label>
 
-          <label style={styles.label}>
+          <label style={s.label}>
             Angle de départ : {angle}°
             <input
               type="range"
@@ -135,16 +136,16 @@ export default function PendulumQuiz() {
               step={1}
               value={angle}
               onChange={(e) => handleAngleChange(parseInt(e.target.value))}
-              style={styles.range}
+              style={s.range}
             />
           </label>
 
-          <div style={styles.periodBox}>
+          <div style={s.readout}>
             Période estimée : <strong>{period.toFixed(2)} s</strong>
           </div>
 
           <button
-            style={{ ...styles.button, ...(running ? styles.buttonStop : {}) }}
+            style={{ ...s.button, ...(running ? s.buttonStop : {}) }}
             onClick={() => setRunning((r) => !r)}
           >
             {running ? "Mettre en pause" : "Lancer le pendule"}
@@ -152,16 +153,16 @@ export default function PendulumQuiz() {
         </div>
       </div>
 
-      <div style={styles.quizArea}>
-        <p style={styles.question}>
+      <div style={s.quizArea}>
+        <p style={s.question}>
           Question : si tu multiplies la longueur du fil par <strong>4</strong>, que
           devient approximativement la période d&apos;oscillation ?
         </p>
-        <div style={styles.choices}>
+        <div style={s.choices}>
           <button
             style={{
-              ...styles.choiceBtn,
-              ...(answered && selected === "same" ? styles.wrong : {}),
+              ...s.choiceBtn,
+              ...(answered && selected === "same" ? s.wrong : {}),
             }}
             onClick={() => handleAnswer("same")}
             disabled={answered}
@@ -170,8 +171,8 @@ export default function PendulumQuiz() {
           </button>
           <button
             style={{
-              ...styles.choiceBtn,
-              ...(answered && selected === "double" ? styles.correct : {}),
+              ...s.choiceBtn,
+              ...(answered && selected === "double" ? s.correct : {}),
             }}
             onClick={() => handleAnswer("double")}
             disabled={answered}
@@ -180,8 +181,8 @@ export default function PendulumQuiz() {
           </button>
           <button
             style={{
-              ...styles.choiceBtn,
-              ...(answered && selected === "quadruple" ? styles.wrong : {}),
+              ...s.choiceBtn,
+              ...(answered && selected === "quadruple" ? s.wrong : {}),
             }}
             onClick={() => handleAnswer("quadruple")}
             disabled={answered}
@@ -191,7 +192,7 @@ export default function PendulumQuiz() {
         </div>
 
         {answered && (
-          <div style={quizState === "correct" ? styles.feedbackOk : styles.feedbackKo}>
+          <div style={quizState === "correct" ? s.feedbackOk : s.feedbackKo}>
             {quizState === "correct"
               ? "Exact ! T = 2π√(L/g) : la période varie comme la racine carrée de la longueur, donc multiplier L par 4 double T. Essaie avec le curseur pour vérifier toi-même."
               : "Pas tout à fait — regarde la formule affichée, et teste avec le curseur longueur pour observer l'effet réel (T ∝ √L)."}
@@ -201,124 +202,3 @@ export default function PendulumQuiz() {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  card: {
-    maxWidth: 420,
-    margin: "0 auto",
-    fontFamily: "var(--font-body), sans-serif",
-    border: "1px solid #D6D9CC",
-    borderRadius: 16,
-    overflow: "hidden",
-    background: "#ffffff",
-    boxShadow: "0 2px 12px rgba(20,20,40,0.06)",
-  },
-  header: {
-    padding: "18px 20px 4px",
-  },
-  eyebrow: {
-    fontSize: 12,
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: "#4A5A4C",
-  },
-  title: {
-    margin: "4px 0 0",
-    fontSize: 20,
-    color: "#1F2B22",
-    fontFamily: "var(--font-display), serif",
-  },
-  simArea: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "8px 20px 4px",
-  },
-  svg: {
-    background: "#EEF0E8",
-    borderRadius: 12,
-  },
-  controls: {
-    width: "100%",
-    marginTop: 8,
-  },
-  label: {
-    display: "block",
-    fontSize: 13,
-    color: "#3c3c48",
-    marginBottom: 10,
-  },
-  range: {
-    width: "100%",
-    marginTop: 4,
-  },
-  periodBox: {
-    fontSize: 13,
-    color: "#3c3c48",
-    background: "#E4E7DC",
-    borderRadius: 8,
-    padding: "6px 10px",
-    marginBottom: 10,
-  },
-  button: {
-    width: "100%",
-    padding: "10px 14px",
-    borderRadius: 10,
-    border: "none",
-    background: "#3F6B46",
-    color: "#fff",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  buttonStop: {
-    background: "#A6482E",
-  },
-  quizArea: {
-    padding: "16px 20px 20px",
-    borderTop: "1px solid #eef0f5",
-    background: "#fafbfd",
-  },
-  question: {
-    fontSize: 14,
-    color: "#1c1c28",
-    marginTop: 0,
-  },
-  choices: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  choiceBtn: {
-    textAlign: "left",
-    padding: "10px 12px",
-    borderRadius: 10,
-    border: "1px solid #dcdce6",
-    background: "#fff",
-    cursor: "pointer",
-    fontSize: 13,
-  },
-  correct: {
-    borderColor: "#3fb27f",
-    background: "#e9faf1",
-  },
-  wrong: {
-    borderColor: "#e2586b",
-    background: "#fdecee",
-  },
-  feedbackOk: {
-    marginTop: 10,
-    fontSize: 13,
-    color: "#1c6b46",
-    background: "#e9faf1",
-    padding: "10px 12px",
-    borderRadius: 10,
-  },
-  feedbackKo: {
-    marginTop: 10,
-    fontSize: 13,
-    color: "#8a2436",
-    background: "#fdecee",
-    padding: "10px 12px",
-    borderRadius: 10,
-  },
-};
