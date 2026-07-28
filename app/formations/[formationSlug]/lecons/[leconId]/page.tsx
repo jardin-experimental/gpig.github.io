@@ -5,6 +5,7 @@ import { QuizPlayer, type QuizData } from './quiz-player'
 import { SIMULATION_REGISTRY, type SimulationKey } from '@/components/simulations/registry'
 import { getLessonNavigation } from '@/lib/formations/get-formation-tree'
 import { LessonNav } from './lesson-nav'
+import { ProtectedVideo } from './protected-video'
 
 async function loadQuiz(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -121,9 +122,7 @@ export default async function LeconPage({
       <h1 className="mb-6 text-2xl font-semibold">{lecon.titre}</h1>
 
       {content.video_url && (
-        <div className="mb-6 aspect-video w-full overflow-hidden rounded-lg bg-black">
-          <video src={content.video_url} controls className="h-full w-full" />
-        </div>
+        <ProtectedVideo src={content.video_url} watermarkLabel={user.email ?? undefined} />
       )}
 
       {content.contenu_texte && (
