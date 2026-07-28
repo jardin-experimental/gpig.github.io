@@ -65,6 +65,7 @@ export function ProtectedVideo({
             onContextMenu={(e) => e.preventDefault()}
         >
             <video
+                playsInline
                 ref={videoRef}
                 src={src}
                 controls
