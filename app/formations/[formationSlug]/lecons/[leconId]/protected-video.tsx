@@ -40,7 +40,7 @@ export function ProtectedVideo({
             {watermarkLabel && (
                 <div
                     aria-hidden
-                    className="pointer-events-none absolute bottom-3 right-3 select-none rounded bg-black/40 px-2 py-1 font-mono text-xs text-white/70"
+                    className="pointer-events-none absolute right-3 top-3 z-20 select-none rounded bg-black/70 px-3 py-1.5 font-mono text-sm text-white"
                 >
                     {watermarkLabel}
                 </div>
