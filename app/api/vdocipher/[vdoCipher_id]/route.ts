@@ -73,8 +73,8 @@ export async function GET(
                 ttl: 300,
                 annotate: JSON.stringify([
                     {
-                        type: "text",
-                        text: user.email ?? "unknown",
+                        type: 'rtext',
+                        text: user.email ?? "GPIG",
                         x: 10,
                         y: 10,
                         alpha: '0.50',
