@@ -73,10 +73,12 @@ export async function GET(
                 ttl: 300,
                 json: true,
 
-                annotate: JSON.stringify({
-                    email: user.email,
-                    id: user.id,
-                }),
+                annotate: [
+                    {
+                        type: "text",
+                        text: user.email ?? "unknown",
+                    },
+                ],
             }),
         }
     );
