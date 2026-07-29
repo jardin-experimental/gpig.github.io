@@ -1,71 +1,35 @@
 'use client'
 
-import { useEffect, useRef } from "react";
-
-declare global {
-    interface Window {
-        VdoPlayer: any;
-    }
-}
+import { useEffect, useState } from 'react'
 
 export default function SecureVideo({
     vdoCipher_id,
 }: {
-    vdoCipher_id: string | null;
+    vdoCipher_id: string | null
 }) {
-
-    const container = useRef<HTMLDivElement>(null);
+    const [data, setData] = useState<{
+        otp: string
+        playbackInfo: string
+    } | null>(null)
 
     useEffect(() => {
+        fetch(`/api/vdocipher/${vdoCipher_id}`)
+            .then(r => r.json())
+            .then(setData)
+    }, [vdoCipher_id])
 
-        async function load() {
+    if (!data) return null
 
-            const res = await fetch(
-                `/api/vdocipher/${vdoCipher_id}`
-            );
-
-            const data = await res.json();
-
-            if (!window.VdoPlayer) {
-
-                const script = document.createElement("script");
-
-                script.src =
-                    "https://player.vdocipher.com/v2/api.js";
-
-                script.onload = () => {
-
-                    new window.VdoPlayer({
-                        otp: data.otp,
-                        playbackInfo: data.playbackInfo,
-                        container: container.current,
-                    });
-
-                };
-
-                document.body.appendChild(script);
-
-            } else {
-
-                new window.VdoPlayer({
-                    otp: data.otp,
-                    playbackInfo: data.playbackInfo,
-                    container: container.current,
-                });
-
-            }
-
-        }
-
-        load();
-
-    }, [vdoCipher_id]);
+    const src =
+        `https://player.vdocipher.com/v2/?otp=${encodeURIComponent(data.otp)}` +
+        `&playbackInfo=${encodeURIComponent(data.playbackInfo)}`
 
     return (
-        <div
-            ref={container}
-            className="aspect-video w-full rounded-lg overflow-hidden"
+        <iframe
+            src={src}
+            allow="encrypted-media"
+            allowFullScreen
+            className="w-full aspect-video rounded-lg border-0"
         />
-    );
-
+    )
 }
