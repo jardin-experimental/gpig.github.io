@@ -71,7 +71,6 @@ export async function GET(
             },
             body: JSON.stringify({
                 ttl: 300,
-                json: true,
 
                 annotate: [
                     {
