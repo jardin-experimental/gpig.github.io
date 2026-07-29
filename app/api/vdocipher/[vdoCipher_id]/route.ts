@@ -73,12 +73,12 @@ export async function GET(
                 ttl: 300,
                 annotate: JSON.stringify([
                     {
-                        type: 'rtext',
-                        text: '{name}',
+                        type: "text",
+                        text: user.email ?? "unknown",
                         x: 10,
                         y: 10,
-                        alpha: '0.60',
-                        color: '0xFF0000',
+                        alpha: '0.30',
+                        color: '0xFFFFFF',
                         size: '15',
                         interval: '5000',
                     },
