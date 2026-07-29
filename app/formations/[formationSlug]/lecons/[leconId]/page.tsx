@@ -6,6 +6,7 @@ import { SIMULATION_REGISTRY, type SimulationKey } from '@/components/simulation
 import { getLessonNavigation } from '@/lib/formations/get-formation-tree'
 import { LessonNav } from './lesson-nav'
 import { ProtectedVideo } from './protected-video'
+import SecureVideo from '@/components/SecureVideo'
 
 async function loadQuiz(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -122,7 +123,8 @@ export default async function LeconPage({
       <h1 className="mb-6 text-2xl font-semibold">{lecon.titre}</h1>
 
       {content.video_url && (
-        <ProtectedVideo src={content.video_url} watermarkLabel={user.email ?? undefined} />
+        // <ProtectedVideo src={content.video_url} watermarkLabel={user.email ?? undefined} />
+        <SecureVideo vdoCipher_id={content.vdoCipher_id}></SecureVideo>
       )}
 
       {content.contenu_texte && (
