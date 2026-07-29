@@ -75,6 +75,8 @@ export async function GET(
                     {
                         type: "text",
                         text: user.email ?? "unknown",
+                        x: 10,
+                        y: 10
                     },
                 ]),
             }),
