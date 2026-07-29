@@ -82,6 +82,6 @@ export async function GET(
     );
 
     const otp = await response.json();
-
+    console.log(otp);
     return NextResponse.json(otp);
 }
