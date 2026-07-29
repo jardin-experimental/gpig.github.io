@@ -102,7 +102,7 @@ export default async function LeconPage({
   // RLS ne renverra une ligne ici que si is_lesson_unlocked() est vrai pour l'utilisateur courant
   const { data: content } = await supabase
     .from('lecon_contents')
-    .select('video_url, contenu_texte, ressources')
+    .select('video_url, contenu_texte, ressources, vdoCipher_id')
     .eq('lecon_id', leconId)
     .maybeSingle()
 

@@ -11,7 +11,7 @@ declare global {
 export default function SecureVideo({
     vdoCipher_id,
 }: {
-    vdoCipher_id: string;
+    vdoCipher_id: string | null;
 }) {
 
     const container = useRef<HTMLDivElement>(null);
