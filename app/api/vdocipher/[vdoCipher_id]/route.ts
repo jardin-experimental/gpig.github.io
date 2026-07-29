@@ -47,7 +47,7 @@ export async function GET(
     //------------------------------------
 
     const response = await fetch(
-        "https://dev.vdocipher.com/api/videos/" +
+        "https://www.vdocipher.com/api/videos/" +
         (await params).vdoCipher_id +
         "/otp",
         {
@@ -70,8 +70,6 @@ export async function GET(
     );
 
     const otp = await response.json();
-
-    console.log("VdoCipher response:", otp);
 
     return NextResponse.json(otp);
 }
