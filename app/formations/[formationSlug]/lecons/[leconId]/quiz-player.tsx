@@ -102,11 +102,10 @@ export function QuizPlayer({
     return (
       <div className="flex flex-col gap-4">
         <div
-          className={`rounded-md p-4 text-sm ${
-            result.reussi
-              ? 'bg-moss-50 text-moss-800'
-              : 'bg-amber-50 text-amber-800'
-          }`}
+          className={`rounded-md p-4 text-sm ${result.reussi
+            ? 'bg-moss-50 text-moss-800'
+            : 'bg-amber-50 text-amber-800'
+            }`}
         >
           Score : {result.score}% — {result.reussi ? 'Réussi' : 'Non validé'}{' '}
           (seuil requis : {quiz.note_passage_pourcentage}%)
@@ -292,7 +291,7 @@ function OrderableList({
     const toIndex = fromIndex + direction
     if (toIndex < 0 || toIndex >= value.length) return
     const next = [...value]
-    ;[next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]]
+      ;[next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]]
     onChange(next)
   }
 
