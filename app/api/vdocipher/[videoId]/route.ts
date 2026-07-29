@@ -33,6 +33,8 @@ export async function GET(
         .eq("lecon_id", (await params).lessonId)
         .single();
 
+    console.log({ lesson });
+
     if (!lesson) {
         return NextResponse.json(
             { error: "Lesson not found" },
