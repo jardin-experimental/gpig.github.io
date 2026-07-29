@@ -77,7 +77,7 @@ export async function GET(
                         text: user.email ?? "GPIG",
                         x: 10,
                         y: 10,
-                        alpha: '0.50',
+                        alpha: '0.10',
                         color: '0x909090',
                         size: '15',
                         interval: '5000',
