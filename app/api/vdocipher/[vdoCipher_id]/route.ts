@@ -10,6 +10,8 @@ export async function GET(
     }
 ) {
 
+    const { vdoCipher_id } = await params;
+
     const supabase = await createClient();
 
     const {
@@ -48,7 +50,7 @@ export async function GET(
 
     const response = await fetch(
         "https://www.vdocipher.com/api/videos/" +
-        (await params).vdoCipher_id +
+        vdoCipher_id +
         "/otp",
         {
             method: "POST",
