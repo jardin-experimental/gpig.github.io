@@ -71,5 +71,7 @@ export async function GET(
 
     const otp = await response.json();
 
+    console.log("VdoCipher response:", otp);
+
     return NextResponse.json(otp);
 }
