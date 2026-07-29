@@ -78,7 +78,7 @@ export async function GET(
                         x: 10,
                         y: 10,
                         alpha: '0.10',
-                        color: '0x909090',
+                        color: '0x000000',
                         size: '15',
                         interval: '5000',
                     },
