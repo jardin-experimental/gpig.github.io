@@ -5,7 +5,7 @@ export async function GET(
     request: Request,
     { params }: {
         params: Promise<{
-            lessonId: string
+            vdoCipher_id: string
         }>
     }
 ) {
@@ -27,20 +27,20 @@ export async function GET(
     // récupérer la leçon
     //------------------------------------
 
-    const { data: lesson } = await supabase
-        .from("lecon_contents")
-        .select("vdoCipher_id")
-        .eq("lecon_id", (await params).lessonId)
-        .single();
+    // const { data: lesson } = await supabase
+    //     .from("lecon_contents")
+    //     .select("vdoCipher_id")
+    //     .eq("lecon_id", (await params).vdoCipher_id)
+    //     .single();
 
-    console.log({ lesson });
+    // console.log({ lesson });
 
-    if (!lesson) {
-        return NextResponse.json(
-            { error: "Lesson not found" },
-            { status: 404 }
-        );
-    }
+    // if (!lesson) {
+    //     return NextResponse.json(
+    //         { error: "Lesson not found" },
+    //         { status: 404 }
+    //     );
+    // }
 
     //------------------------------------
     // appel VdoCipher
@@ -48,7 +48,7 @@ export async function GET(
 
     const response = await fetch(
         "https://dev.vdocipher.com/api/videos/" +
-        lesson.vdoCipher_id +
+        (await params).vdoCipher_id +
         "/otp",
         {
             method: "POST",
