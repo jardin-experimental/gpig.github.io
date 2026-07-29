@@ -13,12 +13,31 @@ export default function SecureVideo({
     } | null>(null)
 
     useEffect(() => {
+        if (!vdoCipher_id) return
+
         fetch(`/api/vdocipher/${vdoCipher_id}`)
-            .then(r => r.json())
+            .then(async (r) => {
+                const json = await r.json()
+
+                console.log("Réponse VdoCipher API :", json)
+
+                if (!r.ok) {
+                    throw new Error(JSON.stringify(json))
+                }
+
+                return json
+            })
             .then(setData)
+            .catch((err) => {
+                console.error("Erreur SecureVideo :", err)
+            })
+
     }, [vdoCipher_id])
 
-    if (!data) return null
+
+    if (!data?.otp || !data?.playbackInfo) {
+        return null
+    }
 
     const src =
         `https://player.vdocipher.com/v2/?otp=${encodeURIComponent(data.otp)}` +
