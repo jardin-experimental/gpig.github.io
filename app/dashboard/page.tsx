@@ -31,6 +31,11 @@ export default async function DashboardPage() {
 
   const xpNext = xpForNextLevel(profile.level)
 
+  const { count } = await supabase
+    .from('user_badges')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <header className="mb-8 flex items-center justify-between">
@@ -62,7 +67,7 @@ export default async function DashboardPage() {
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <DashboardCard label="Formations suivies" value="—" href="/dashboard/formations" />
         <DashboardCard label="Quiz réalisés" value="—" href="/dashboard/quiz" />
-        <DashboardCard label="Badges" value="—" href="/dashboard/badges" />
+        <DashboardCard label="Badges" value={count} href="/dashboard/badges" />
         <DashboardCard label="Certificats" value="—" href="/dashboard/certificats" />
         <DashboardCard label="Factures" value="—" href="/dashboard/factures" />
         <DashboardCard label="Appels réservés" value="—" href="/dashboard/appels" />
@@ -77,7 +82,7 @@ function DashboardCard({
   href,
 }: {
   label: string
-  value: string
+  value: string | number | null
   href: string
 }) {
   return (
