@@ -22,7 +22,13 @@ export type QuestionType =
   | 'ordonnancement'
   | 'image'
   | 'code'
-export type OrderType = 'formation' | 'abonnement' | 'pack' | 'bon_cadeau'
+export type OrderType =
+  | 'formation'
+  | 'abonnement'
+  | 'pack'
+  | 'bon_cadeau'
+  | 'consultation_heure'
+  | 'consultation_pack10h'
 export type OrderStatut = 'en_attente' | 'paye' | 'rembourse' | 'echoue'
 export type SubscriptionStatut = 'active' | 'en_pause' | 'annulee' | 'impayee'
 export type BadgeConditionType =
@@ -32,6 +38,7 @@ export type BadgeConditionType =
   | 'formations_terminees'
   | 'niveau_atteint'
   | 'xp_total'
+export type ConsultationStatut = 'libre' | 'en_attente_paiement' | 'reservee' | 'annulee'
 
 // Utilitaire : construit Insert/Update à partir d'une Row sans avoir à tout
 // répéter à la main pour chaque table.
@@ -346,6 +353,37 @@ export interface Database {
         { user_id: string; badge_id: string; obtenu_at: string },
         'user_id' | 'badge_id'
       >
+
+      consultation_slots: TableDef<
+        {
+          id: string
+          start_at: string
+          end_at: string
+          statut: ConsultationStatut
+          user_id: string | null
+          source: string | null
+          hold_expires_at: string | null
+          stripe_session_id: string | null
+          zoom_meeting_id: string | null
+          zoom_join_url: string | null
+          zoom_start_url: string | null
+          created_at: string
+        },
+        'start_at' | 'end_at'
+      >
+
+      consultation_credits_ledger: TableDef<
+        {
+          id: string
+          user_id: string
+          heures: number
+          raison: string
+          reference_id: string | null
+          stripe_session_id: string | null
+          created_at: string
+        },
+        'user_id' | 'heures' | 'raison'
+      >
     }
 
     Views: Record<string, never>
@@ -383,6 +421,28 @@ export interface Database {
         Args: Record<string, never>
         Returns: { streak: number; xp_gagne: number }[]
       }
+      mes_heures_consultation_disponibles: { Args: Record<string, never>; Returns: number }
+      hold_consultation_slot: {
+        Args: { p_slot_id: string }
+        Returns: Database['public']['Tables']['consultation_slots']['Row']
+      }
+      book_consultation_slot_with_credit: {
+        Args: { p_slot_id: string }
+        Returns: Database['public']['Tables']['consultation_slots']['Row']
+      }
+      set_consultation_slot_zoom: {
+        Args: {
+          p_slot_id: string
+          p_zoom_meeting_id: string
+          p_zoom_join_url: string
+          p_zoom_start_url: string
+        }
+        Returns: Database['public']['Tables']['consultation_slots']['Row']
+      }
+      cancel_consultation_slot: {
+        Args: { p_slot_id: string }
+        Returns: Database['public']['Tables']['consultation_slots']['Row']
+      }
     }
 
     Enums: {
@@ -394,6 +454,7 @@ export interface Database {
       order_statut: OrderStatut
       subscription_statut: SubscriptionStatut
       badge_condition_type: BadgeConditionType
+      consultation_statut: ConsultationStatut
     }
 
     CompositeTypes: Record<string, never>

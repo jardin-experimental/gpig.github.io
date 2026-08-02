@@ -36,8 +36,11 @@ export async function SiteNav() {
               <Link href="/dashboard" className="text-ink-soft hover:text-ink">
                 Tableau de bord
               </Link>
-              <Link href="/dashboard/profil" className="text-ink-soft hover:text-ink">
+              {/* <Link href="/dashboard/profil" className="text-ink-soft hover:text-ink">
                 Profil
+              </Link> */}
+              <Link href="/rendez-vous" className="text-ink-soft hover:text-ink">
+                Rendez-vous
               </Link>
               <form action={signOut}>
                 <button

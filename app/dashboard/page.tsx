@@ -50,7 +50,7 @@ export default async function DashboardPage() {
             href="/dashboard/profil"
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
           >
-            Mon profil
+            Mettre à jour mon profil
           </a>
           <form action={signOut}>
             <button
