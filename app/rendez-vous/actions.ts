@@ -6,8 +6,8 @@ import { createClient } from '@/lib/supabase/server'
 import { stripe } from '@/lib/stripe/server'
 import { createZoomMeeting, deleteZoomMeeting } from '@/lib/zoom/server'
 
-const PRIX_HEURE_CENTIMES = 8500
-const PRIX_PACK10H_CENTIMES = 80000
+const PRIX_HEURE_CENTIMES = 0
+const PRIX_PACK10H_CENTIMES = 0
 
 // Achat du forfait 10h — crédite les heures via le webhook Stripe une fois payé.
 export async function buyConsultationPack10h() {

@@ -31,10 +31,18 @@ export default async function DashboardPage() {
 
   const xpNext = xpForNextLevel(profile.level)
 
-  const { count } = await supabase
-    .from('user_badges')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id);
+  const [{ count: badgesCount, count: formationsSuiviesCount, count: rdvCount }] = await Promise.all([
+    supabase.from('enrollments')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id),
+    supabase
+      .from('user_badges')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id),
+    supabase.from('consultation_slots')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+  ])
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -73,12 +81,12 @@ export default async function DashboardPage() {
       </section>
 
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <DashboardCard label="Formations suivies" value="—" href="/dashboard/formations" />
+        <DashboardCard label="Formations suivies" value={formationsSuiviesCount} href="/dashboard/formations" />
         <DashboardCard label="Quiz réalisés" value="—" href="/dashboard/quiz" />
-        <DashboardCard label="Badges" value={count} href="/dashboard/badges" />
+        <DashboardCard label="Badges" value={badgesCount} href="/dashboard/badges" />
         <DashboardCard label="Certificats" value="—" href="/dashboard/certificats" />
         <DashboardCard label="Factures" value="—" href="/dashboard/factures" />
-        <DashboardCard label="Appels réservés" value="—" href="/dashboard/appels" />
+        <DashboardCard label="Appels réservés" value={rdvCount} href="/rendez-vous" />
       </section>
     </main>
   )

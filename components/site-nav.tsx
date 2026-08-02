@@ -9,6 +9,16 @@ export async function SiteNav() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    isAdmin = profile?.role === 'administrateur'
+  }
+
   return (
     <header className="border-b border-line">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
@@ -39,9 +49,17 @@ export async function SiteNav() {
               {/* <Link href="/dashboard/profil" className="text-ink-soft hover:text-ink">
                 Profil
               </Link> */}
-              <Link href="/rendez-vous" className="text-ink-soft hover:text-ink">
+              {!isAdmin && (<Link href="/rendez-vous" className="text-ink-soft hover:text-ink">
                 Rendez-vous
-              </Link>
+              </Link>)}
+              {isAdmin && (
+                <Link
+                  href="/admin/rendez-vous"
+                  className="text-ink-soft hover:text-ink"
+                >
+                  Rendez-vous
+                </Link>
+              )}
               <form action={signOut}>
                 <button
                   type="submit"
