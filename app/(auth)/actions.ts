@@ -70,31 +70,54 @@ export async function signOut() {
   redirect('/')
 }
 
+type ProfileActionState = { error: string | null; success: string | null }
+
+const USERNAME_REGEX = /^[a-z0-9_-]{3,20}$/
+
 export async function updateProfile(
-  _prevState: ActionState,
+  _prevState: ProfileActionState,
   formData: FormData
-): Promise<ActionState> {
+): Promise<ProfileActionState> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { error: 'Non authentifié.' }
+    return { error: 'Non authentifié.', success: null }
   }
 
-  const display_name = formData.get('display_name') as string
-  const bio = formData.get('bio') as string
+  const display_name = (formData.get('display_name') as string)?.trim() || null
+  const bio = (formData.get('bio') as string)?.trim() || null
+  const avatar_url = (formData.get('avatar_url') as string)?.trim() || null
+  const usernameRaw = (formData.get('username') as string)?.trim().toLowerCase()
+
+  if (!usernameRaw || !USERNAME_REGEX.test(usernameRaw)) {
+    return {
+      error:
+        "Le nom d'utilisateur doit contenir entre 3 et 20 caractères (lettres minuscules, chiffres, tirets, underscores).",
+      success: null,
+    }
+  }
+
+  if (bio && bio.length > 280) {
+    return { error: 'La bio ne peut pas dépasser 280 caractères.', success: null }
+  }
 
   const { error } = await supabase
     .from('profiles')
-    .update({ display_name, bio })
+    .update({ username: usernameRaw, display_name, bio, avatar_url })
     .eq('id', user.id)
 
   if (error) {
-    return { error: 'Mise à jour impossible.' }
+    // Code 23505 = violation de contrainte unique (username déjà pris)
+    if (error.code === '23505') {
+      return { error: 'Ce nom d’utilisateur est déjà pris.', success: null }
+    }
+    return { error: 'Mise à jour impossible.', success: null }
   }
 
   revalidatePath('/dashboard')
-  return { error: null }
+  revalidatePath('/dashboard/profil')
+  return { error: null, success: 'Profil mis à jour.' }
 }

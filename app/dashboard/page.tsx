@@ -45,14 +45,22 @@ export default async function DashboardPage() {
           </h1>
           <p className="text-sm text-gray-500">Rôle : {profile.role}</p>
         </div>
-        <form action={signOut}>
-          <button
-            type="submit"
+        <div className="flex items-center gap-3">
+          <a
+            href="/dashboard/profil"
             className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
           >
-            Déconnexion
-          </button>
-        </form>
+            Mon profil
+          </a>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
+            >
+              Déconnexion
+            </button>
+          </form>
+        </div>
       </header>
 
       <section className="mb-8 rounded-lg border border-line bg-white/60 p-5">
