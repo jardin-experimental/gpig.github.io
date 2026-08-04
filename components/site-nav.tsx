@@ -10,6 +10,9 @@ export async function SiteNav() {
   } = await supabase.auth.getUser()
 
   let isAdmin = false
+  let atomes = 0
+  let articlesPanier = 0
+
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -17,6 +20,14 @@ export async function SiteNav() {
       .eq('id', user.id)
       .single()
     isAdmin = profile?.role === 'administrateur'
+
+    const [{ data: soldeAtomes }, { data: panier }] = await Promise.all([
+      supabase.rpc('mes_atomes_disponibles'),
+      supabase.from('panier_items').select('quantite'),
+    ])
+
+    atomes = soldeAtomes ?? 0
+    articlesPanier = panier?.reduce((total, item) => total + item.quantite, 0) ?? 0
   }
 
   return (
@@ -40,9 +51,46 @@ export async function SiteNav() {
           <Link href="/classement" className="text-ink-soft hover:text-ink">
             Classement
           </Link>
+          <Link href="/boutique" className="text-ink-soft hover:text-ink">
+            Boutique
+          </Link>
 
           {user ? (
             <>
+              <Link
+                href="/boutique/packs-atomes"
+                className="flex items-center gap-1 rounded-full border border-line px-3 py-1 text-ink-soft hover:border-moss-600 hover:text-moss-700"
+                title="Solde d'Atomes"
+              >
+                <span aria-hidden>⚛️</span>
+                <span>{atomes}</span>
+              </Link>
+              <Link
+                href="/boutique/panier"
+                className="relative flex items-center text-ink-soft hover:text-ink"
+                title="Panier"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                  aria-hidden
+                >
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+                {articlesPanier > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-moss-700 text-[10px] text-white">
+                    {articlesPanier}
+                  </span>
+                )}
+              </Link>
               <Link href="/dashboard" className="text-ink-soft hover:text-ink">
                 Tableau de bord
               </Link>

@@ -34,16 +34,87 @@ export async function POST(request: Request) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
       const userId = session.metadata?.user_id
-      const formationId = session.metadata?.formation_id
-      const slotId = session.metadata?.slot_id
       const type = (session.metadata?.type ?? 'formation') as
         | 'formation'
         | 'pack'
         | 'abonnement'
         | 'consultation_heure'
         | 'consultation_pack10h'
+        | 'pack_atomes'
+        | 'boutique'
 
       if (!userId) break
+
+      // --------------------------------------------------------------
+      // Boutique (panier physique) : la commande a déjà été créée en
+      // 'en_attente' par preparer_commande_panier_physique() avant la
+      // redirection Stripe (même logique que le hold des créneaux de
+      // consultation). On ne crée pas une nouvelle ligne, on met à jour
+      // celle qui existe déjà via son id transmis en metadata.
+      // --------------------------------------------------------------
+      if (type === 'boutique') {
+        const orderId = session.metadata?.order_id
+        if (!orderId) break
+
+        const { data: existing } = await supabase
+          .from('orders')
+          .select('id, statut')
+          .eq('id', orderId)
+          .maybeSingle()
+
+        // Idempotence : commande introuvable ou déjà finalisée
+        if (!existing || existing.statut === 'paye') break
+
+        await supabase
+          .from('orders')
+          .update({
+            stripe_session_id: session.id,
+            stripe_payment_intent_id:
+              typeof session.payment_intent === 'string' ? session.payment_intent : null,
+            montant_centimes: session.amount_total ?? 0,
+            tva_centimes: session.total_details?.amount_tax ?? 0,
+            devise: session.currency ?? 'eur',
+            statut: 'paye',
+            adresse_livraison:
+              session.collected_information?.shipping_details?.address ??
+              session.customer_details?.address ??
+              null,
+          })
+          .eq('id', orderId)
+
+        // TODO : une fois un prestataire print-on-demand choisi
+        // (Printful/Gelato/...), appeler son API ici avec l'adresse de
+        // livraison (session.customer_details / collected_information)
+        // et les lignes de boutique_commande_items liées à orderId, pour
+        // déclencher l'impression + l'expédition automatiquement.
+
+        // Ne retire du panier que les articles physiques de cette commande,
+        // pour ne pas toucher d'éventuels articles numériques encore en attente.
+        const { data: items } = await supabase
+          .from('boutique_commande_items')
+          .select('produit_id')
+          .eq('order_id', orderId)
+
+        if (items && items.length > 0) {
+          await supabase
+            .from('panier_items')
+            .delete()
+            .eq('user_id', userId)
+            .in(
+              'produit_id',
+              items.map((i) => i.produit_id)
+            )
+        }
+
+        break
+      }
+
+      // --------------------------------------------------------------
+      // Tous les autres types : comportement inchangé, une nouvelle
+      // ligne `orders` est créée pour cette session.
+      // --------------------------------------------------------------
+      const formationId = session.metadata?.formation_id
+      const slotId = session.metadata?.slot_id
 
       // Idempotence : ne traite jamais deux fois la même session
       const { data: existingOrder } = await supabase
@@ -130,12 +201,28 @@ export async function POST(request: Request) {
         })
       }
 
+      // Crédite le solde d'Atomes de l'utilisateur ; le nombre d'Atomes
+      // du pack acheté est transmis en metadata par buyAtomesPack (voir
+      // app/boutique/packs-atomes/actions.ts).
+      if (type === 'pack_atomes' && userId) {
+        const atomes = Number(session.metadata?.atomes ?? 0)
+        if (atomes > 0) {
+          await supabase.from('atomes_ledger').insert({
+            user_id: userId,
+            montant: atomes,
+            raison: 'achat_pack',
+            stripe_session_id: session.id,
+          })
+        }
+      }
+
       break
     }
 
     case 'checkout.session.expired': {
       const session = event.data.object as Stripe.Checkout.Session
       const slotId = session.metadata?.slot_id
+      const orderId = session.metadata?.order_id
       const type = session.metadata?.type
 
       // Libère le créneau tenu en attente si le paiement n'a pas abouti,
@@ -146,6 +233,17 @@ export async function POST(request: Request) {
           .update({ statut: 'libre', user_id: null, source: null, hold_expires_at: null })
           .eq('id', slotId)
           .eq('statut', 'en_attente_paiement')
+      }
+
+      // Marque la commande boutique physique comme échouée plutôt que de
+      // la laisser 'en_attente' indéfiniment ; les articles restent dans
+      // le panier pour que le client puisse réessayer.
+      if (type === 'boutique' && orderId) {
+        await supabase
+          .from('orders')
+          .update({ statut: 'echoue' })
+          .eq('id', orderId)
+          .eq('statut', 'en_attente')
       }
       break
     }
