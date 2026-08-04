@@ -68,7 +68,7 @@ export async function getFormationTree(slug: string): Promise<FormationTree | nu
 
   const { data: hasAccess } = await supabase.rpc('has_formation_access', {
     p_formation_id: formation.id,
-    p_user_id: user?.id ?? null,
+    p_user_id: user!.id,
   })
 
   const { data: progress } = user
