@@ -581,6 +581,8 @@ export type Database = {
           created_at: string
           devise: string
           formation_id: string | null
+          gelato_order_id: string | null
+          gelato_statut: string | null
           id: string
           montant_centimes: number
           statut: Database["public"]["Enums"]["order_statut"]
@@ -596,6 +598,8 @@ export type Database = {
           created_at?: string
           devise?: string
           formation_id?: string | null
+          gelato_order_id?: string | null
+          gelato_statut?: string | null
           id?: string
           montant_centimes: number
           statut?: Database["public"]["Enums"]["order_statut"]
@@ -611,6 +615,8 @@ export type Database = {
           created_at?: string
           devise?: string
           formation_id?: string | null
+          gelato_order_id?: string | null
+          gelato_statut?: string | null
           id?: string
           montant_centimes?: number
           statut?: Database["public"]["Enums"]["order_statut"]
@@ -682,8 +688,11 @@ export type Database = {
           created_at: string
           description: string | null
           disponible: boolean
+          gelato_print_file_url: string | null
+          gelato_product_uid: string | null
           id: string
           image_url: string | null
+          images_url: string[] | null
           nom: string
           pod_provider: string | null
           pod_variant_id: string | null
@@ -697,8 +706,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           disponible?: boolean
+          gelato_print_file_url?: string | null
+          gelato_product_uid?: string | null
           id?: string
           image_url?: string | null
+          images_url?: string[] | null
           nom: string
           pod_provider?: string | null
           pod_variant_id?: string | null
@@ -712,8 +724,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           disponible?: boolean
+          gelato_print_file_url?: string | null
+          gelato_product_uid?: string | null
           id?: string
           image_url?: string | null
+          images_url?: string[] | null
           nom?: string
           pod_provider?: string | null
           pod_variant_id?: string | null
@@ -1137,55 +1152,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      acheter_panier_atomes:
-        | {
-            Args: never
-            Returns: {
-              adresse_livraison: Json | null
-              code_promo: string | null
-              created_at: string
-              devise: string
-              formation_id: string | null
-              id: string
-              montant_centimes: number
-              statut: Database["public"]["Enums"]["order_statut"]
-              stripe_payment_intent_id: string | null
-              stripe_session_id: string | null
-              tva_centimes: number
-              type: Database["public"]["Enums"]["order_type"]
-              user_id: string | null
-            }
-            SetofOptions: {
-              from: "*"
-              to: "orders"
-              isOneToOne: true
-              isSetofReturn: false
-            }
-          }
-        | {
-            Args: { p_adresse?: Json }
-            Returns: {
-              adresse_livraison: Json | null
-              code_promo: string | null
-              created_at: string
-              devise: string
-              formation_id: string | null
-              id: string
-              montant_centimes: number
-              statut: Database["public"]["Enums"]["order_statut"]
-              stripe_payment_intent_id: string | null
-              stripe_session_id: string | null
-              tva_centimes: number
-              type: Database["public"]["Enums"]["order_type"]
-              user_id: string | null
-            }
-            SetofOptions: {
-              from: "*"
-              to: "orders"
-              isOneToOne: true
-              isSetofReturn: false
-            }
-          }
+      acheter_panier_atomes: {
+        Args: { p_adresse?: Json }
+        Returns: {
+          adresse_livraison: Json | null
+          code_promo: string | null
+          created_at: string
+          devise: string
+          formation_id: string | null
+          gelato_order_id: string | null
+          gelato_statut: string | null
+          id: string
+          montant_centimes: number
+          statut: Database["public"]["Enums"]["order_statut"]
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          tva_centimes: number
+          type: Database["public"]["Enums"]["order_type"]
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       ajouter_au_panier: {
         Args: { p_produit_id: string; p_quantite?: number }
         Returns: {
@@ -1344,6 +1336,8 @@ export type Database = {
           created_at: string
           devise: string
           formation_id: string | null
+          gelato_order_id: string | null
+          gelato_statut: string | null
           id: string
           montant_centimes: number
           statut: Database["public"]["Enums"]["order_statut"]

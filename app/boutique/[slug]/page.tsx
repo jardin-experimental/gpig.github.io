@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { AddToCartButton } from '@/components/boutique/add-to-card-button'
+import { ProduitGallery } from '@/components/boutique/produit-gallery'
+import { AtomeIcon } from '@/components/icons/atome-icon'
 
 export default async function ProduitPage({
     params,
@@ -33,20 +35,7 @@ export default async function ProduitPage({
             </Link>
 
             <div className="grid gap-10 lg:grid-cols-2">
-                <div className="overflow-hidden rounded-xl border border-line bg-moss-50">
-                    {produit.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                            src={produit.image_url}
-                            alt={produit.nom}
-                            className="aspect-square w-full object-cover"
-                        />
-                    ) : (
-                        <div className="flex aspect-square items-center justify-center text-7xl">
-                            🔬
-                        </div>
-                    )}
-                </div>
+                <ProduitGallery images={produit.images_url} nom={produit.nom} />
 
                 <div className="flex flex-col">
                     <div className="flex flex-wrap gap-2">
@@ -76,8 +65,9 @@ export default async function ProduitPage({
 
                         <div className="flex flex-wrap items-center gap-3">
                             {produit.prix_atomes != null && (
-                                <span className="font-display text-3xl text-ink">
-                                    ⚛️ {produit.prix_atomes} Atomes
+                                <span className="flex items-center gap-1.5 font-display text-3xl text-ink">
+                                    {produit.prix_atomes} Atomes
+                                    <AtomeIcon className="h-6 w-6 text-moss-700" />
                                 </span>
                             )}
 

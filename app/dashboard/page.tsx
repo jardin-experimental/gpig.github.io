@@ -60,14 +60,14 @@ export default async function DashboardPage() {
           >
             Mettre à jour mon profil
           </a>
-          <form action={signOut}>
+          {/* <form action={signOut}>
             <button
               type="submit"
               className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
             >
               Déconnexion
             </button>
-          </form>
+          </form> */}
         </div>
       </header>
 

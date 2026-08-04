@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createZoomMeeting } from '@/lib/zoom/server'
+import { createGelatoOrder } from '@/lib/gelato/server'
 
 // Le webhook doit recevoir le corps brut pour vérifier la signature Stripe
 export const runtime = 'nodejs'
@@ -65,6 +66,11 @@ export async function POST(request: Request) {
         // Idempotence : commande introuvable ou déjà finalisée
         if (!existing || existing.statut === 'paye') break
 
+        const adresseLivraison =
+          session.collected_information?.shipping_details?.address ??
+          session.customer_details?.address ??
+          null
+
         await supabase
           .from('orders')
           .update({
@@ -75,29 +81,76 @@ export async function POST(request: Request) {
             tva_centimes: session.total_details?.amount_tax ?? 0,
             devise: session.currency ?? 'eur',
             statut: 'paye',
-            adresse_livraison: JSON.parse(
-              JSON.stringify(
-                session.collected_information?.shipping_details?.address ??
-                session.customer_details?.address ??
-                null
-              )
-            ),
+            adresse_livraison: JSON.parse(JSON.stringify(adresseLivraison)),
           })
           .eq('id', orderId)
 
-        // TODO : une fois un prestataire print-on-demand choisi
-        // (Printful/Gelato/...), appeler son API ici avec l'adresse de
-        // livraison (session.customer_details / collected_information)
-        // et les lignes de boutique_commande_items liées à orderId, pour
-        // déclencher l'impression + l'expédition automatiquement.
+        // --------------------------------------------------------------
+        // Déclenchement de la commande Gelato pour les articles physiques
+        // (mugs, etc.). Les articles sans gelato_product_uid (produits
+        // numériques) sont ignorés.
+        // --------------------------------------------------------------
+        const { data: items } = await supabase
+          .from('boutique_commande_items')
+          .select('produit_id, quantite, produits(gelato_product_uid, gelato_print_file_url, nom)')
+          .eq('order_id', orderId)
+
+        const itemsPhysiques = (items ?? []).filter(
+          (i) => i.produits?.gelato_product_uid
+        )
+
+        if (itemsPhysiques.length > 0 && adresseLivraison) {
+          const nomComplet =
+            session.collected_information?.shipping_details?.name ??
+            session.customer_details?.name ??
+            ''
+          const [firstName, ...rest] = nomComplet.split(' ')
+
+          try {
+            const gelatoOrder = await createGelatoOrder({
+              orderReferenceId: orderId,
+              customerReferenceId: userId,
+              currency: (session.currency ?? 'eur').toUpperCase(),
+              items: itemsPhysiques.map((i) => ({
+                itemReferenceId: `${orderId}-${i.produit_id}`,
+                productUid: i.produits!.gelato_product_uid!,
+                quantity: i.quantite,
+                fileUrl: i.produits!.gelato_print_file_url!,
+              })),
+              shippingAddress: {
+                firstName: firstName ?? '',
+                lastName: rest.join(' '),
+                addressLine1: adresseLivraison.line1 ?? '',
+                addressLine2: adresseLivraison.line2 ?? undefined,
+                city: adresseLivraison.city ?? '',
+                postCode: adresseLivraison.postal_code ?? '',
+                country: adresseLivraison.country ?? '',
+                email: session.customer_details?.email ?? '',
+              },
+            })
+
+            await supabase
+              .from('orders')
+              .update({
+                gelato_order_id: gelatoOrder.id,
+                gelato_statut: gelatoOrder.status,
+              })
+              .eq('id', orderId)
+          } catch (gelatoError) {
+            // Le paiement est encaissé mais la commande Gelato n'a pas pu
+            // être créée : on garde 'paye' (le client a bien payé) et on
+            // logue pour une création manuelle côté administrateur, plutôt
+            // que de bloquer le webhook ou perdre la commande.
+            console.error('Création commande Gelato impossible (webhook)', gelatoError)
+            await supabase
+              .from('orders')
+              .update({ gelato_statut: 'echec_creation' })
+              .eq('id', orderId)
+          }
+        }
 
         // Ne retire du panier que les articles physiques de cette commande,
         // pour ne pas toucher d'éventuels articles numériques encore en attente.
-        const { data: items } = await supabase
-          .from('boutique_commande_items')
-          .select('produit_id')
-          .eq('order_id', orderId)
-
         if (items && items.length > 0) {
           await supabase
             .from('panier_items')
