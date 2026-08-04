@@ -92,7 +92,7 @@ export function QuizPlayer({
         setResult({
           score: res.score_pourcentage,
           reussi: res.reussi,
-          details: res.details as DetailResult[],
+          details: res.details as unknown as DetailResult[],
         })
       }
     })
