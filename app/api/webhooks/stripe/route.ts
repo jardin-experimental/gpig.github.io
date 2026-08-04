@@ -75,10 +75,13 @@ export async function POST(request: Request) {
             tva_centimes: session.total_details?.amount_tax ?? 0,
             devise: session.currency ?? 'eur',
             statut: 'paye',
-            adresse_livraison:
-              session.collected_information?.shipping_details?.address ??
-              session.customer_details?.address ??
-              null,
+            adresse_livraison: JSON.parse(
+              JSON.stringify(
+                session.collected_information?.shipping_details?.address ??
+                session.customer_details?.address ??
+                null
+              )
+            ),
           })
           .eq('id', orderId)
 
