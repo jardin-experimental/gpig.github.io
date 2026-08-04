@@ -8,7 +8,7 @@ import { stripe } from '@/lib/stripe/server'
 // Ajoute un produit au panier de l'utilisateur connecté puis redirige vers
 // le panier. Passe par la fonction RPC ajouter_au_panier (voir migration
 // 0013_boutique.sql) qui vérifie la disponibilité du produit côté serveur.
-export async function ajouterAuPanier(produitId: string) {
+export async function ajouterAuPanier(produitId: string, quantite: number) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -18,7 +18,7 @@ export async function ajouterAuPanier(produitId: string) {
 
   const { error } = await supabase.rpc('ajouter_au_panier', {
     p_produit_id: produitId,
-    p_quantite: 1,
+    p_quantite: quantite,
   })
 
   if (error) {
@@ -86,12 +86,12 @@ export async function acheterPanierAtomes(formData: FormData) {
   const adresse =
     nom || ligne1 || codePostal || ville
       ? {
-          nom: nom || null,
-          ligne1: ligne1 || null,
-          code_postal: codePostal || null,
-          ville: ville || null,
-          pays: pays || 'FR',
-        }
+        nom: nom || null,
+        ligne1: ligne1 || null,
+        code_postal: codePostal || null,
+        ville: ville || null,
+        pays: pays || 'FR',
+      }
       : null
 
   const { error } = await supabase.rpc('acheter_panier_atomes', { p_adresse: adresse })
