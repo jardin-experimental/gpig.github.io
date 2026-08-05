@@ -1109,6 +1109,60 @@ export type Database = {
           },
         ]
       }
+      video_interactions: {
+        Row: {
+          contenu: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          lecon_id: string
+          pause_video: boolean
+          quiz_id: string | null
+          timestamp_seconds: number
+          titre: string | null
+          type: string
+        }
+        Insert: {
+          contenu?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          lecon_id: string
+          pause_video?: boolean
+          quiz_id?: string | null
+          timestamp_seconds: number
+          titre?: string | null
+          type: string
+        }
+        Update: {
+          contenu?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          lecon_id?: string
+          pause_video?: boolean
+          quiz_id?: string | null
+          timestamp_seconds?: number
+          titre?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_interactions_lecon_id_fkey"
+            columns: ["lecon_id"]
+            isOneToOne: false
+            referencedRelation: "lecons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_interactions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       xp_ledger: {
         Row: {
           created_at: string
@@ -1177,6 +1231,57 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_create_video_interaction: {
+        Args: {
+          p_contenu?: string
+          p_image_url?: string
+          p_lecon_id: string
+          p_pause_video?: boolean
+          p_quiz_id?: string
+          p_timestamp_seconds: number
+          p_titre?: string
+          p_type: string
+        }
+        Returns: string
+      }
+      admin_delete_video_interaction: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
+      admin_list_video_interactions: {
+        Args: { p_lecon_id: string }
+        Returns: {
+          contenu: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          lecon_id: string
+          pause_video: boolean
+          quiz_id: string | null
+          timestamp_seconds: number
+          titre: string | null
+          type: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "video_interactions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_update_video_interaction: {
+        Args: {
+          p_contenu?: string
+          p_id: string
+          p_image_url?: string
+          p_pause_video?: boolean
+          p_quiz_id?: string
+          p_timestamp_seconds: number
+          p_titre?: string
+          p_type: string
+        }
+        Returns: undefined
       }
       ajouter_au_panier: {
         Args: { p_produit_id: string; p_quantite?: number }

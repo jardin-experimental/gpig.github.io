@@ -5,8 +5,10 @@ import { QuizPlayer, type QuizData } from './quiz-player'
 import { SIMULATION_REGISTRY, type SimulationKey } from '@/components/simulations/registry'
 import { getLessonNavigation } from '@/lib/formations/get-formation-tree'
 import { LessonNav } from './lesson-nav'
-import { ProtectedVideo } from './protected-video'
 import SecureVideo from '@/components/SecureVideo'
+import { InteractiveVdoCipherVideo } from '@/components/video-interactions/interactive-vdocipher'
+import { loadVideoInteractions } from '@/lib/video-interactions/load-video-interactions'
+import { VideoInteractionsLink } from '@/components/video-interactions/video-interaction-button'
 
 async function loadQuiz(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -118,13 +120,23 @@ export default async function LeconPage({
     )
   }
 
+  // Même garde RLS que lecon_contents ci-dessus : si la leçon n'est pas
+  // déverrouillée pour cet utilisateur, la requête renvoie simplement [].
+  const interactions = content.video_url
+    ? await loadVideoInteractions(supabase, leconId)
+    : []
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
       <h1 className="mb-6 text-2xl font-semibold">{lecon.titre}</h1>
 
       {content.video_url && (
-        // <ProtectedVideo src={content.video_url} watermarkLabel={user.email ?? undefined} />
-        <SecureVideo vdoCipher_id={content.vdoCipher_id}></SecureVideo>
+        <><VideoInteractionsLink leconId={lecon.id} leconType={lecon.type} />
+          <InteractiveVdoCipherVideo interactions={interactions}>
+            <SecureVideo vdoCipher_id={content.vdoCipher_id}></SecureVideo>
+          </InteractiveVdoCipherVideo>
+        </>
+
       )}
 
       {content.contenu_texte && (
