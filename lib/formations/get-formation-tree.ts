@@ -66,10 +66,12 @@ export async function getFormationTree(slug: string): Promise<FormationTree | nu
     .eq('formation_id', formation.id)
     .order('position')
 
-  const { data: hasAccess } = await supabase.rpc('has_formation_access', {
-    p_formation_id: formation.id,
-    p_user_id: user!.id,
-  })
+  const { data: hasAccess } = user
+    ? await supabase.rpc('has_formation_access', {
+      p_formation_id: formation.id,
+      p_user_id: user.id,
+    })
+    : { data: false }
 
   const { data: progress } = user
     ? await supabase.from('lesson_progress').select('lecon_id').eq('user_id', user.id)
