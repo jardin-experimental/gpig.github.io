@@ -1109,6 +1109,32 @@ export type Database = {
           },
         ]
       }
+      video_interaction_completions: {
+        Row: {
+          completed_at: string
+          interaction_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          interaction_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          interaction_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_interaction_completions_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "video_interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_interactions: {
         Row: {
           contenu: string | null

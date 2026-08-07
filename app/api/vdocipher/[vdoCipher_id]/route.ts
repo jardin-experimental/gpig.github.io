@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { json } from "stream/consumers";
+import { getMobileUser } from "@/lib/supabase/mobile";
 
 export async function GET(
     request: Request,
@@ -13,11 +13,20 @@ export async function GET(
 
     const { vdoCipher_id } = await params;
 
-    const supabase = await createClient();
+    // Web (cookies) et mobile (Bearer token) sont tous les deux acceptés ici :
+    // on essaie d'abord le Bearer token (présent uniquement pour l'app mobile),
+    // sinon on retombe sur le client cookies habituel du site.
+    const authHeader = request.headers.get("authorization");
+    let user;
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    if (authHeader) {
+        const mobileAuth = await getMobileUser(request);
+        user = mobileAuth.user;
+    } else {
+        const supabase = await createClient();
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+    }
 
     if (!user) {
         return NextResponse.json(
