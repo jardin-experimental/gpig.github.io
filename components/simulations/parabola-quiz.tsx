@@ -30,7 +30,7 @@ export default function ParabolaQuiz() {
   const points: string = Array.from({ length: 61 }, (_, i) => {
     const x = -10 + (i * 20) / 60;
     const y = f(x);
-    const { sx, sy } = toScreen(x, Math.max(-8, Math.min(8, y)));
+    const { sx, sy } = toScreen(x, y); //Math.max(-8, Math.min(8, y)));
     return `${sx},${sy}`;
   }).join(" ");
 
