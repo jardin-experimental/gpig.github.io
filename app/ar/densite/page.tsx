@@ -5,6 +5,7 @@ import Script from "next/script";
 import { useSearchParams } from "next/navigation";
 
 const WATER_DENSITY = 1000;
+const ModelViewer = "model-viewer" as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 function DensiteArContent() {
   const params = useSearchParams();
@@ -39,8 +40,7 @@ function DensiteArContent() {
         <h1 style={styles.title}>Densité et flottaison</h1>
       </div>
 
-      {/* @ts-expect-error -- web component, voir types/model-viewer.d.ts */}
-      <model-viewer
+      <ModelViewer
         src={modelSrc}
         alt="Objet de simulation densité"
         ar
@@ -54,7 +54,7 @@ function DensiteArContent() {
         <button slot="ar-button" style={styles.arButton}>
           🅰🆁 Voir dans ma pièce (RA)
         </button>
-      </model-viewer>
+      </ModelViewer>
 
       <div style={styles.controls}>
         <label style={styles.label}>
