@@ -16,8 +16,12 @@ function DentifriceArContent() {
   const speed = 0.4 + (concentration / 100) * 2; // mappe 0-100 -> x0.4 à x2.4
 
   const [modelSrc, setModelSrc] = useState(() => buildModelUrl(speed));
+  const [iosSrc, setIosSrc] = useState(() => buildUsdzUrl(speed));
   useEffect(() => {
-    const timeout = setTimeout(() => setModelSrc(buildModelUrl(speed)), 250);
+    const timeout = setTimeout(() => {
+      setModelSrc(buildModelUrl(speed));
+      setIosSrc(buildUsdzUrl(speed));
+    }, 250);
     return () => clearTimeout(timeout);
   }, [speed]);
 
@@ -43,6 +47,7 @@ function DentifriceArContent() {
 
       <ModelViewer
         src={modelSrc}
+        ios-src={iosSrc}
         alt="Bouteille avec jaillissement de mousse animé"
         ar
         ar-modes="scene-viewer webxr quick-look"
@@ -132,6 +137,10 @@ function DentifriceArContent() {
 
 function buildModelUrl(speed: number) {
   return `/api/ar/toothpaste-model?speed=${speed.toFixed(2)}`;
+}
+
+function buildUsdzUrl(speed: number) {
+  return `/api/ar/toothpaste-model.usdz?speed=${speed.toFixed(2)}`;
 }
 
 export default function DentifriceArPage() {
