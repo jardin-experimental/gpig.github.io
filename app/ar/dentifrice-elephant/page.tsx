@@ -16,11 +16,12 @@ function DentifriceArContent() {
   const speed = 0.4 + (concentration / 100) * 2; // mappe 0-100 -> x0.4 à x2.4
 
   const [modelSrc, setModelSrc] = useState(() => buildModelUrl(speed));
-  const [iosSrc, setIosSrc] = useState(() => buildUsdzUrl(speed));
+  // const [iosSrc, setIosSrc] = useState(() => buildUsdzUrl(speed));
+  const iosSrc = "/models/glove_baseball_mtl_variant.usdz";
   useEffect(() => {
     const timeout = setTimeout(() => {
       setModelSrc(buildModelUrl(speed));
-      setIosSrc(buildUsdzUrl(speed));
+      // setIosSrc(buildUsdzUrl(speed));
     }, 250);
     return () => clearTimeout(timeout);
   }, [speed]);
