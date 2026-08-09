@@ -164,7 +164,7 @@ function buildUsda(speed: number): string {
   const timeSamples = frames.map((f, i) => `            ${f}: (${scales[i].join(", ")}),`).join("\n");
 
   const foamExtra = `        double3 xformOp:translate = (0, ${bottleHeight}, 0)
-        float3[] xformOp:scale.timeSamples = {
+        float3 xformOp:scale.timeSamples = {
 ${timeSamples}
         }
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
