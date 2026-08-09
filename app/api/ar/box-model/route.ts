@@ -19,8 +19,9 @@ export async function GET(request: NextRequest) {
   const b = clamp255(searchParams.get("b"), 78);
 
   const glb = buildCubeGlb(size, [r / 255, g / 255, b / 255, 1]);
+  const arrayBuffer = glb.buffer.slice(glb.byteOffset, glb.byteOffset + glb.byteLength) as ArrayBuffer;
 
-  return new NextResponse(glb, {
+  return new NextResponse(arrayBuffer, {
     headers: {
       "Content-Type": "model/gltf-binary",
       "Cache-Control": "public, max-age=3600",
