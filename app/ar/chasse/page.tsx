@@ -141,12 +141,19 @@ function ChasseArContent() {
   const [geo, setGeo] = useState<GeoState | null>(null);
   const [heading, setHeading] = useState<number | null>(null);
   const [found, setFound] = useState(false);
-  const redirectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const validConfig = Number.isFinite(targetLat) && Number.isFinite(targetLng) && targetUrl.length > 0;
 
   async function handleStart() {
     setError(null);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError(
+        "Caméra indisponible dans ce navigateur. Si tu as ouvert ce lien depuis une autre app (Messages, WhatsApp, Instagram…), copie-le et colle-le directement dans Safari ou Chrome."
+      );
+      return;
+    }
+
     try {
       // iOS Safari exige un geste utilisateur explicite pour autoriser
       // l'accès à l'orientation de l'appareil — d'où ce bouton, pas de
@@ -201,12 +208,18 @@ function ChasseArContent() {
   const isAligned = diff != null && diff <= angleTolerance;
   const isClose = distance != null && distance <= radius;
 
+  // Détection : ne fait que passer found à true, une seule fois.
   useEffect(() => {
     if (isAligned && isClose && !found) {
       setFound(true);
     }
   }, [isAligned, isClose, found]);
 
+  // Redirection : effet séparé, ne dépend que de `found`. Important — s'il
+  // dépendait aussi de isAligned/isClose, une fluctuation GPS/boussole dans
+  // les 1.8s (très fréquente) annulerait le minuteur via le cleanup
+  // ci-dessous sans jamais le reprogrammer, et la redirection ne partirait
+  // jamais malgré l'écran "Trouvé !" resté affiché.
   useEffect(() => {
     if (!found) return;
     const timeout = setTimeout(() => {
@@ -248,6 +261,8 @@ function ChasseArContent() {
 
   return (
     <div style={styles.page}>
+      <video ref={videoRef} playsInline muted autoPlay style={styles.video} />
+
       {!started ? (
         <div style={styles.startScreen}>
           <span style={styles.eyebrow}>Chasse au trésor · GPIG</span>
@@ -262,8 +277,6 @@ function ChasseArContent() {
         </div>
       ) : (
         <>
-          <video ref={videoRef} playsInline muted style={styles.video} />
-
           {found ? (
             <div style={styles.foundOverlay}>
               <div style={styles.foundBadge}>🎉</div>
@@ -290,6 +303,11 @@ function ChasseArContent() {
               {geo && geo.accuracy > 30 && (
                 <p style={styles.hudHint}>Précision GPS faible ({geo.accuracy.toFixed(0)} m) — sors si possible.</p>
               )}
+              <p style={styles.debugText}>
+                dist={distance?.toFixed(1) ?? "?"}m (≤{radius}) · cap={heading?.toFixed(0) ?? "?"}° · cible=
+                {bearing?.toFixed(0) ?? "?"}° · écart={diff?.toFixed(0) ?? "?"}° (≤{angleTolerance}) · aligné=
+                {String(isAligned)} · proche={String(isClose)}
+              </p>
             </div>
           )}
         </>
@@ -301,6 +319,8 @@ function ChasseArContent() {
 const styles: Record<string, React.CSSProperties> = {
   page: { minHeight: "100vh", background: "#000", color: "#F1F5F9", position: "relative", overflow: "hidden" },
   startScreen: {
+    position: "relative",
+    zIndex: 1,
     minHeight: "100vh",
     display: "flex",
     flexDirection: "column",
@@ -352,6 +372,14 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
   },
   hudHint: { background: "rgba(120,53,15,0.8)", padding: "6px 14px", borderRadius: 16, fontSize: 11.5 },
+  debugText: {
+    background: "rgba(0,0,0,0.6)",
+    padding: "4px 10px",
+    borderRadius: 8,
+    fontSize: 9.5,
+    color: "#94A3B8",
+    fontFamily: "monospace",
+  },
   foundOverlay: {
     position: "absolute",
     inset: 0,
