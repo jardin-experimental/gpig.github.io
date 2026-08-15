@@ -220,7 +220,7 @@ function ChasseArContent() {
   const FOV_V = 45;
   // ⚠️ Signe non garanti — à inverser ici (mettre à true) si le marqueur se
   // déplace dans le mauvais sens vertical lors du test sur appareil réel.
-  const INVERT_PITCH = false;
+  const INVERT_PITCH = true;
 
   let markerX: number | null = null;
   let markerY: number | null = null;
