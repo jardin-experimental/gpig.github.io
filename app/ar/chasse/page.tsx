@@ -204,15 +204,16 @@ function ChasseArContent() {
   useEffect(() => {
     if (isAligned && isClose && !found) {
       setFound(true);
-      redirectTimeout.current = setTimeout(() => {
-        window.location.href = targetUrl;
-      }, 1800);
     }
-    return () => {
-      if (redirectTimeout.current) clearTimeout(redirectTimeout.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAligned, isClose]);
+  }, [isAligned, isClose, found]);
+
+  useEffect(() => {
+    if (!found) return;
+    const timeout = setTimeout(() => {
+      window.location.href = targetUrl;
+    }, 1800);
+    return () => clearTimeout(timeout);
+  }, [found, targetUrl]);
 
   if (loadingConfig) {
     return (
