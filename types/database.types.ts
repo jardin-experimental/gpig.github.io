@@ -186,6 +186,56 @@ export type Database = {
           },
         ]
       }
+      chasses_ar: {
+        Row: {
+          created_at: string
+          formation_id: string | null
+          id: string
+          is_active: boolean
+          label: string
+          latitude: number
+          longitude: number
+          rayon_metres: number
+          slug: string
+          tolerance_angle: number
+          url_destination: string
+        }
+        Insert: {
+          created_at?: string
+          formation_id?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          latitude: number
+          longitude: number
+          rayon_metres?: number
+          slug: string
+          tolerance_angle?: number
+          url_destination: string
+        }
+        Update: {
+          created_at?: string
+          formation_id?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          latitude?: number
+          longitude?: number
+          rayon_metres?: number
+          slug?: string
+          tolerance_angle?: number
+          url_destination?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chasses_ar_formation_id_fkey"
+            columns: ["formation_id"]
+            isOneToOne: false
+            referencedRelation: "formations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultation_credits_ledger: {
         Row: {
           created_at: string
