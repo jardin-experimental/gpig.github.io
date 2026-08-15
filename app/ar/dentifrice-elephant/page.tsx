@@ -17,7 +17,7 @@ function DentifriceArContent() {
 
   const [modelSrc, setModelSrc] = useState(() => buildModelUrl(speed));
   // const [iosSrc, setIosSrc] = useState(() => buildUsdzUrl(speed));
-  const iosSrc = "/models/glove_baseball_mtl_variant.usdz";
+  const iosSrc = "/models/Scene.usdz";
   useEffect(() => {
     const timeout = setTimeout(() => {
       setModelSrc(buildModelUrl(speed));
@@ -63,6 +63,10 @@ function DentifriceArContent() {
           🅰🆁 Voir dans ma pièce (RA)
         </button>
       </ModelViewer>
+
+      {/* <a rel="ar" href="/models/hab_en.reality">
+        coucou
+      </a> */}
 
       <div style={styles.controls}>
         <label style={styles.label}>

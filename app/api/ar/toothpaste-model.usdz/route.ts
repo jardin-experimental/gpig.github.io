@@ -6,15 +6,14 @@ import { NextRequest, NextResponse } from "next/server";
  * ancrage spatial). Sans ce fichier, iOS n'a que l'aperçu 3D interactif
  * sur la page (pas la vraie RA caméra).
  *
- * ATTENTION — fiabilité non garantie : ce fichier contient un layer USD
- * au format ASCII (.usda) zippé, ce que la spécification USDZ autorise en
- * théorie, mais Quick Look est connu pour être strict et les outils
- * officiels (usdzconvert, Reality Converter) produisent presque toujours
- * du binaire "crate" (.usdc), jamais testé de mon côté sur un vrai iPhone.
- * Si ce fichier ne s'ouvre pas correctement dans Quick Look, la solution
- * fiable à 100% est de convertir le .glb existant (déjà fonctionnel) avec
- * Reality Converter (app gratuite Apple, Mac) et d'héberger le résultat
- * comme fichier statique à la place de cette route.
+ * CONFIRMÉ FONCTIONNEL sur iPhone (testé) : le layer USD au format ASCII
+ * (.usda) zippé est bien accepté par Quick Look, malgré le fait que les
+ * outils officiels (usdzconvert, Reality Converter) produisent presque
+ * toujours du binaire "crate" (.usdc). Attention cependant : chaque
+ * modification de structure (nouveaux attributs, types de données) reste
+ * à re-tester — la tolérance de Quick Look à l'ASCII n'est pas garantie
+ * pour toutes les constructions USD possibles, seulement validée sur ce
+ * qui a été testé jusqu'ici.
  *
  * Query params : ?speed=1.0 (0.3 à 3, même paramètre que toothpaste-model)
  */
@@ -131,6 +130,36 @@ ${extraLines}    }
 `;
 }
 
+function buildLathe(profile: [number, number][], segments: number, capBottom = true): Tri[] {
+  const tris: Tri[] = [];
+  function pushTri(p0: Vec3, p1: Vec3, p2: Vec3) {
+    tris.push({ p: [p0, p1, p2] });
+  }
+  for (let ring = 0; ring < profile.length - 1; ring++) {
+    const [r0, y0] = profile[ring];
+    const [r1, y1] = profile[ring + 1];
+    for (let i = 0; i < segments; i++) {
+      const a0 = (i / segments) * 2 * Math.PI;
+      const a1 = ((i + 1) / segments) * 2 * Math.PI;
+      const b0: Vec3 = [r0 * Math.cos(a0), y0, r0 * Math.sin(a0)];
+      const b1: Vec3 = [r0 * Math.cos(a1), y0, r0 * Math.sin(a1)];
+      const t0: Vec3 = [r1 * Math.cos(a0), y1, r1 * Math.sin(a0)];
+      const t1: Vec3 = [r1 * Math.cos(a1), y1, r1 * Math.sin(a1)];
+      if (r0 > 1e-6) pushTri(b0, b1, t1);
+      if (r1 > 1e-6) pushTri(b0, t1, t0);
+    }
+  }
+  if (capBottom) {
+    const [r0, y0] = profile[0];
+    for (let i = 0; i < segments; i++) {
+      const a0 = (i / segments) * 2 * Math.PI;
+      const a1 = ((i + 1) / segments) * 2 * Math.PI;
+      pushTri([0, y0, 0], [r0 * Math.cos(a1), y0, r0 * Math.sin(a1)], [r0 * Math.cos(a0), y0, r0 * Math.sin(a0)]);
+    }
+  }
+  return tris;
+}
+
 function buildUsda(speed: number): string {
   const bottleHeight = 0.14;
   const bottleTris = buildCylinder({
@@ -141,25 +170,30 @@ function buildUsda(speed: number): string {
     capBottom: true,
     capTop: false,
   });
-  const foamTris = buildCylinder({
-    radiusTop: 0.05,
-    radiusBottom: 0.025,
-    height: 0.18,
-    segments: 16,
-    capBottom: true,
-    capTop: true,
-  });
+  // Pointe fine et arrondie (façon tour de potier) plutôt qu'un cylindre à
+  // bout plat — reproduit le style de l'éruption haute et effilée observée
+  // dans la référence vidéo, au lieu d'une simple bosse.
+  const localFoamHeight = 0.15;
+  const foamProfile: [number, number][] = [
+    [0.03, 0.0],
+    [0.032, 0.05],
+    [0.028, 0.55],
+    [0.016, 0.85],
+    [0.006, 0.97],
+    [0.0, 1.0],
+  ].map(([r, yFrac]) => [r, yFrac * localFoamHeight]);
+  const foamTris = buildLathe(foamProfile, 16, true);
 
   const fps = 24;
-  const rawTimes = [0, 0.7, 1.0, 1.3, 2.2, 2.5];
+  const rawTimes = [0, 0.6, 0.9, 1.3, 2.2, 2.5];
   const frames = rawTimes.map((t) => Math.round((t / speed) * fps));
   const scales: Vec3[] = [
-    [0.05, 0.05, 0.05],
-    [1.1, 1.5, 1.1],
-    [1.0, 1.3, 1.0],
-    [1.05, 1.35, 1.05],
-    [1.0, 1.3, 1.0],
-    [0.05, 0.05, 0.05],
+    [0.1, 0.05, 0.1],
+    [1.0, 3.2, 1.0],
+    [1.1, 4.2, 1.1],
+    [1.0, 4.0, 1.0],
+    [1.0, 4.0, 1.0],
+    [0.1, 0.05, 0.1],
   ];
   const timeSamples = frames.map((f, i) => `            ${f}: (${scales[i].join(", ")}),`).join("\n");
 

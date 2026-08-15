@@ -126,6 +126,43 @@ function minMax(flatVec3: number[]) {
   return { min, max };
 }
 
+function buildLathe(
+  profile: [number, number][],
+  segments: number,
+  capBottom = true
+) {
+  const positions: number[] = [];
+  const normals: number[] = [];
+  function pushTri(p0: Vec3, p1: Vec3, p2: Vec3) {
+    const n = faceNormal(p0, p1, p2);
+    positions.push(...p0, ...p1, ...p2);
+    for (let i = 0; i < 3; i++) normals.push(...n);
+  }
+  for (let ring = 0; ring < profile.length - 1; ring++) {
+    const [r0, y0] = profile[ring];
+    const [r1, y1] = profile[ring + 1];
+    for (let i = 0; i < segments; i++) {
+      const a0 = (i / segments) * 2 * Math.PI;
+      const a1 = ((i + 1) / segments) * 2 * Math.PI;
+      const b0: Vec3 = [r0 * Math.cos(a0), y0, r0 * Math.sin(a0)];
+      const b1: Vec3 = [r0 * Math.cos(a1), y0, r0 * Math.sin(a1)];
+      const t0: Vec3 = [r1 * Math.cos(a0), y1, r1 * Math.sin(a0)];
+      const t1: Vec3 = [r1 * Math.cos(a1), y1, r1 * Math.sin(a1)];
+      if (r0 > 1e-6) pushTri(b0, b1, t1);
+      if (r1 > 1e-6) pushTri(b0, t1, t0);
+    }
+  }
+  if (capBottom) {
+    const [r0, y0] = profile[0];
+    for (let i = 0; i < segments; i++) {
+      const a0 = (i / segments) * 2 * Math.PI;
+      const a1 = ((i + 1) / segments) * 2 * Math.PI;
+      pushTri([0, y0, 0], [r0 * Math.cos(a1), y0, r0 * Math.sin(a1)], [r0 * Math.cos(a0), y0, r0 * Math.sin(a0)]);
+    }
+  }
+  return { positions, normals };
+}
+
 function buildToothpasteGlb(speed: number): Buffer {
   const bottleHeight = 0.14;
 
@@ -137,14 +174,20 @@ function buildToothpasteGlb(speed: number): Buffer {
     capBottom: true,
     capTop: false,
   });
-  const foam = buildCylinder({
-    radiusTop: 0.05,
-    radiusBottom: 0.025,
-    height: 0.18,
-    segments: 16,
-    capBottom: true,
-    capTop: true,
-  });
+
+  // Pointe fine et arrondie (façon tour de potier) plutôt qu'un cylindre à
+  // bout plat — reproduit le style de l'éruption haute et effilée observée
+  // dans la référence vidéo, au lieu d'une simple bosse.
+  const localFoamHeight = 0.15;
+  const foamProfile: [number, number][] = [
+    [0.03, 0.0],
+    [0.032, 0.05],
+    [0.028, 0.55],
+    [0.016, 0.85],
+    [0.006, 0.97],
+    [0.0, 1.0],
+  ].map(([r, yFrac]) => [r, yFrac * localFoamHeight]);
+  const foam = buildLathe(foamProfile, 16, true);
 
   const buffers: Buffer[] = [];
   let offset = 0;
@@ -161,17 +204,19 @@ function buildToothpasteGlb(speed: number): Buffer {
   const foamPosView = addBuffer(foam.positions);
   const foamNormView = addBuffer(foam.normals);
 
-  // Keyframes de l'éruption : minuscule -> jaillit -> se stabilise -> reset
-  // (boucle stylisée, pas une rétraction physique réelle de la mousse).
-  const rawTimes = [0, 0.7, 1.0, 1.3, 2.2, 2.5];
+  // Keyframes de l'éruption : minuscule -> jaillit haut et fin -> se
+  // stabilise -> reset (boucle stylisée, pas une rétraction physique
+  // réelle de la mousse). L'échelle Y monte beaucoup plus que X/Z pour
+  // garder l'aspect "pointe fine qui jaillit" plutôt qu'un blob qui gonfle.
+  const rawTimes = [0, 0.6, 0.9, 1.3, 2.2, 2.5];
   const times = rawTimes.map((t) => t / speed);
   const scales: number[][] = [
-    [0.05, 0.05, 0.05],
-    [1.1, 1.5, 1.1],
-    [1.0, 1.3, 1.0],
-    [1.05, 1.35, 1.05],
-    [1.0, 1.3, 1.0],
-    [0.05, 0.05, 0.05],
+    [0.1, 0.05, 0.1],
+    [1.0, 3.2, 1.0],
+    [1.1, 4.2, 1.1],
+    [1.0, 4.0, 1.0],
+    [1.0, 4.0, 1.0],
+    [0.1, 0.05, 0.1],
   ];
   const timeView = addBuffer(times);
   const scaleView = addBuffer(scales.flat());

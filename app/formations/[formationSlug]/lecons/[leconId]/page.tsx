@@ -9,6 +9,7 @@ import SecureVideo from '@/components/SecureVideo'
 import { InteractiveVdoCipherVideo } from '@/components/video-interactions/interactive-vdocipher'
 import { loadVideoInteractions } from '@/lib/video-interactions/load-video-interactions'
 import { loadCompletedInteractionIds } from '@/lib/video-interactions/load-completed-interactions'
+import H5PPlayer from '@/components/H5PPlayer'
 
 async function loadQuiz(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -104,7 +105,7 @@ export default async function LeconPage({
   // RLS ne renverra une ligne ici que si is_lesson_unlocked() est vrai pour l'utilisateur courant
   const { data: content } = await supabase
     .from('lecon_contents')
-    .select('video_url, contenu_texte, ressources, vdoCipher_id')
+    .select('video_url, contenu_texte, ressources, vdoCipher_id, h5p_content_id')
     .eq('lecon_id', leconId)
     .maybeSingle()
 
@@ -156,6 +157,16 @@ export default async function LeconPage({
           </div>
         ) : null
       })()}
+
+      {content.h5p_content_id && (
+        <div className="mb-6">
+          <H5PPlayer
+            contentId={content.h5p_content_id}
+            lessonId={leconId}
+            storageBaseUrl={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/h5p-content`}
+          />
+        </div>
+      )}
 
       <CompleteLessonButton
         leconId={lecon.id}

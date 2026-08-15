@@ -433,9 +433,46 @@ export type Database = {
           },
         ]
       }
+      h5p_attempts: {
+        Row: {
+          content_id: string
+          created_at: string
+          id: string
+          lesson_id: string
+          max_score: number | null
+          raw_score: number | null
+          score: number
+          user_id: string
+          verb: string | null
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          id?: string
+          lesson_id: string
+          max_score?: number | null
+          raw_score?: number | null
+          score: number
+          user_id: string
+          verb?: string | null
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          max_score?: number | null
+          raw_score?: number | null
+          score?: number
+          user_id?: string
+          verb?: string | null
+        }
+        Relationships: []
+      }
       lecon_contents: {
         Row: {
           contenu_texte: string | null
+          h5p_content_id: string | null
           lecon_id: string
           ressources: Json | null
           vdoCipher_id: string | null
@@ -443,6 +480,7 @@ export type Database = {
         }
         Insert: {
           contenu_texte?: string | null
+          h5p_content_id?: string | null
           lecon_id: string
           ressources?: Json | null
           vdoCipher_id?: string | null
@@ -450,6 +488,7 @@ export type Database = {
         }
         Update: {
           contenu_texte?: string | null
+          h5p_content_id?: string | null
           lecon_id?: string
           ressources?: Json | null
           vdoCipher_id?: string | null
