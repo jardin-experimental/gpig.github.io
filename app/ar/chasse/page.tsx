@@ -140,6 +140,7 @@ function ChasseArContent() {
   const [error, setError] = useState<string | null>(null);
   const [geo, setGeo] = useState<GeoState | null>(null);
   const [heading, setHeading] = useState<number | null>(null);
+  const [pitch, setPitch] = useState<number | null>(null);
   const [found, setFound] = useState(false);
 
   const validConfig = Number.isFinite(targetLat) && Number.isFinite(targetLng) && targetUrl.length > 0;
@@ -199,6 +200,8 @@ function ChasseArContent() {
       // Repli le moins fiable : pas garanti aligné sur le vrai nord.
       setHeading((360 - event.alpha) % 360);
     }
+
+    if (event.beta != null) setPitch(event.beta);
   }
 
   const distance = geo ? distanceMeters(geo.lat, geo.lng, targetLat, targetLng) : null;
@@ -207,6 +210,36 @@ function ChasseArContent() {
 
   const isAligned = diff != null && diff <= angleTolerance;
   const isClose = distance != null && distance <= radius;
+
+  // Projection du point sur l'écran, à partir du cap ET de l'inclinaison —
+  // c'est ça qui donne l'effet "flotte dans l'espace" plutôt qu'une simple
+  // flèche de boussole plate. Champs de vision approximatifs (non calibrés
+  // par appareil — une caméra de smartphone typique tourne autour de ces
+  // valeurs, mais ça varie).
+  const FOV_H = 60;
+  const FOV_V = 45;
+  // ⚠️ Signe non garanti — à inverser ici (mettre à true) si le marqueur se
+  // déplace dans le mauvais sens vertical lors du test sur appareil réel.
+  const INVERT_PITCH = false;
+
+  let markerX: number | null = null;
+  let markerY: number | null = null;
+  let offFov = false;
+
+  if (heading != null && bearing != null && pitch != null) {
+    const signedHDiff = ((bearing - heading + 540) % 360) - 180; // [-180, 180]
+    const pitchOffset = (pitch - 90) * (INVERT_PITCH ? -1 : 1);
+
+    offFov = Math.abs(signedHDiff) > FOV_H / 2 || Math.abs(pitchOffset) > FOV_V / 2;
+
+    // Position "libre" (peut sortir de l'écran), puis on la ramène dans une
+    // zone visible avec un peu de marge, pour toujours voir un indice de
+    // direction même quand le point est hors champ.
+    const rawX = 50 + (signedHDiff / (FOV_H / 2)) * 50;
+    const rawY = 50 + (pitchOffset / (FOV_V / 2)) * 50;
+    markerX = Math.max(6, Math.min(94, rawX));
+    markerY = Math.max(10, Math.min(85, rawY));
+  }
 
   // Détection : ne fait que passer found à true, une seule fois.
   useEffect(() => {
@@ -284,31 +317,48 @@ function ChasseArContent() {
               <p style={styles.foundSubtext}>Redirection en cours…</p>
             </div>
           ) : (
-            <div style={styles.hud}>
-              <div style={styles.compassWrap}>
+            <>
+              {markerX != null && markerY != null && (
                 <div
                   style={{
-                    ...styles.compassArrow,
-                    transform: `rotate(${diff != null && bearing != null && heading != null ? bearing - heading : 0}deg)`,
+                    ...styles.floatingMarker,
+                    left: `${markerX}%`,
+                    top: `${markerY}%`,
+                    opacity: offFov ? 0.55 : 1,
                   }}
                 >
-                  ⬆️
+                  <div style={styles.markerPin}>📍</div>
+                  <div style={styles.markerLabel}>
+                    {label}
+                    {distance != null && (
+                      <span style={styles.markerDistance}>
+                        {" "}
+                        · {distance < 1000 ? distance.toFixed(0) + " m" : (distance / 1000).toFixed(1) + " km"}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <p style={styles.hudText}>
-                {distance != null ? `${distance < 1000 ? distance.toFixed(0) + " m" : (distance / 1000).toFixed(1) + " km"}` : "Localisation…"}
-                {isClose && !isAligned && " — tourne-toi vers la flèche"}
-                {!isClose && " — rapproche-toi"}
-              </p>
-              {geo && geo.accuracy > 30 && (
-                <p style={styles.hudHint}>Précision GPS faible ({geo.accuracy.toFixed(0)} m) — sors si possible.</p>
               )}
-              <p style={styles.debugText}>
-                dist={distance?.toFixed(1) ?? "?"}m (≤{radius}) · cap={heading?.toFixed(0) ?? "?"}° · cible=
-                {bearing?.toFixed(0) ?? "?"}° · écart={diff?.toFixed(0) ?? "?"}° (≤{angleTolerance}) · aligné=
-                {String(isAligned)} · proche={String(isClose)}
-              </p>
-            </div>
+
+              <div style={styles.hud}>
+                <p style={styles.hudText}>
+                  {distance != null
+                    ? `${distance < 1000 ? distance.toFixed(0) + " m" : (distance / 1000).toFixed(1) + " km"}`
+                    : "Localisation…"}
+                  {isClose && !isAligned && " — regarde vers le marqueur 📍"}
+                  {!isClose && " — rapproche-toi"}
+                </p>
+                {geo && geo.accuracy > 30 && (
+                  <p style={styles.hudHint}>Précision GPS faible ({geo.accuracy.toFixed(0)} m) — sors si possible.</p>
+                )}
+                <p style={styles.debugText}>
+                  dist={distance?.toFixed(1) ?? "?"}m (≤{radius}) · cap={heading?.toFixed(0) ?? "?"}° · pitch=
+                  {pitch?.toFixed(0) ?? "?"}° · cible={bearing?.toFixed(0) ?? "?"}° · écart=
+                  {diff?.toFixed(0) ?? "?"}° (≤{angleTolerance}) · aligné={String(isAligned)} · proche=
+                  {String(isClose)} · hors-champ={String(offFov)}
+                </p>
+              </div>
+            </>
           )}
         </>
       )}
@@ -354,16 +404,26 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: 12,
   },
-  compassWrap: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    background: "rgba(11,17,32,0.7)",
+  floatingMarker: {
+    position: "absolute",
+    transform: "translate(-50%, -50%)",
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 4,
+    transition: "left 0.1s linear, top 0.1s linear, opacity 0.2s linear",
+    pointerEvents: "none",
   },
-  compassArrow: { fontSize: 40, transition: "transform 0.15s linear" },
+  markerPin: { fontSize: 38, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" },
+  markerLabel: {
+    background: "rgba(11,17,32,0.8)",
+    padding: "4px 10px",
+    borderRadius: 12,
+    fontSize: 11,
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+  },
+  markerDistance: { color: "#22D3EE", fontWeight: 700 },
   hudText: {
     background: "rgba(11,17,32,0.8)",
     padding: "8px 16px",
